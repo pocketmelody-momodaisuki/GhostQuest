@@ -1,22 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-<meta charset="UTF-8">
-
-<!-- iPhone Safari のズーム・スクロール・リフレッシュを完全停止2 -->
-<meta name="viewport"
-      content="width=device-width,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no,
-               viewport-fit=cover">
-               user-scalable=no">
-
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>ゴーストクエストRPG</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<canvas id="gameCanvas" width="800" height="400"></canvas>
-<canvas id="gameCanvas"></canvas>
-<script src="game.js"></script>
+  <div id="gameContainer">
+    <!-- 名前入力 -->
+    <div id="screen-name" class="screen">
+      <h1>ゴーストクエスト</h1>
+      <p>あなたの名前を入力してください</p>
+      <input id="playerNameInput" type="text" maxlength="12" placeholder="なまえ">
+      <div class="button-row">
+        <button id="startButton">ゲームスタート</button>
+      </div>
+    </div>
+
+    <!-- プロローグ -->
+    <div id="screen-prologue" class="screen hidden">
+      <h2>プロローグ</h2>
+      <p class="story-text">
+        ここは静かなゴースト村。<br>
+        最近、幽鬼城に棲みついた「鬼ゴースト」が<br>
+        村人たちを怯えさせているという……。
+      </p>
+      <div class="button-row">
+        <button id="prologueNextButton">次へ</button>
+      </div>
+    </div>
+
+    <!-- 長老の家 -->
+    <div id="screen-elder" class="screen hidden">
+      <h2>長老の家</h2>
+      <p id="elderText" class="story-text"></p>
+      <div class="button-row">
+        <button id="elderToVillageButton">村へ向かう</button>
+      </div>
+    </div>
+
+    <!-- 村 -->
+    <div id="screen-village" class="screen hidden">
+      <h2>ゴースト村</h2>
+      <p>ここはあなたの拠点です。</p>
+      <div class="button-column">
+        <button id="healButton">回復所（無料）</button>
+        <button id="statusButton">ステータス</button>
+        <button id="itemsButton">アイテムストレージ</button>
+        <button id="itemShopButton">道具屋</button>
+        <button id="weaponShopButton">武器屋</button>
+        <button id="saveButton">セーブ</button>
+        <button id="loadButton">ロード</button>
+        <button id="toFieldButton">フィールドへ出発</button>
+      </div>
+    </div>
+
+    <!-- フィールド -->
+    <div id="screen-field" class="screen hidden">
+      <h2>フィールド</h2>
+      <p id="fieldMessage">フィールドを歩いています……</p>
+      <div class="button-column">
+        <button id="fieldStatusButton">ステータス</button>
+        <button id="fieldItemsButton">アイテムストレージ</button>
+        <button id="fieldBackButton">村へ戻る</button>
+        <button id="fieldEncounterButton">敵と遭遇する</button>
+        <button id="fieldBossButton">幽鬼城へ（ボス戦）</button>
+      </div>
+    </div>
+
+    <!-- 戦闘 -->
+    <div id="screen-battle" class="screen hidden">
+      <h2 id="battleTitle">戦闘</h2>
+      <div class="battle-status">
+        <div>
+          <h3>勇者</h3>
+          <p id="playerStatusText"></p>
+        </div>
+        <div>
+          <h3>敵</h3>
+          <p id="enemyStatusText"></p>
+        </div>
+      </div>
+      <div class="battle-log" id="battleLog"></div>
+      <div class="button-row">
+        <button id="attackButton">こうげき</button>
+        <button id="battleItemButton">アイテム</button>
+        <button id="battleRunButton">にげる</button>
+      </div>
+    </div>
+
+    <!-- エンディング -->
+    <div id="screen-ending" class="screen hidden ending-screen">
+      <div class="ending-text">
+        <p>
+          幽鬼城の鬼ゴーストを倒し、<br>
+          村に平和が戻った……<br><br>
+          ゴーストクエスト　完
+        </p>
+        <div class="button-row">
+          <button id="endingToTitleButton">タイトルへ戻る</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 店メニュー -->
+    <div id="screen-shopMenu" class="screen hidden">
+      <h2 id="shopTitle">店</h2>
+      <div class="button-column">
+        <button id="shopBuyButton">買う</button>
+        <button id="shopSellButton">売る</button>
+        <button id="shopExitButton">店を出る</button>
+      </div>
+    </div>
+
+    <!-- 買い物画面 -->
+    <div id="screen-shopBuy" class="screen hidden">
+      <h2 id="shopBuyTitle">買い物</h2>
+      <p id="shopGoldText"></p>
+      <div id="shopBuyList" class="scroll-area"></div>
+      <div class="button-row">
+        <button id="shopBuyBackButton">店メニューへ戻る</button>
+      </div>
+    </div>
+
+    <!-- 売却画面 -->
+    <div id="screen-shopSell" class="screen hidden">
+      <h2>売却</h2>
+      <p id="shopSellGoldText"></p>
+      <div id="shopSellList" class="scroll-area"></div>
+      <div class="button-row">
+        <button id="shopSellBackButton">店メニューへ戻る</button>
+      </div>
+    </div>
+
+    <!-- ステータス画面 -->
+    <div id="screen-status" class="screen hidden">
+      <h2>ステータス</h2>
+      <p id="statusText"></p>
+      <div class="button-row">
+        <button id="statusBackButton">戻る</button>
+      </div>
+    </div>
+
+    <!-- アイテムストレージ -->
+    <div id="screen-items" class="screen hidden">
+      <h2>アイテムストレージ</h2>
+      <p id="itemsGoldText"></p>
+      <div id="itemList" class="scroll-area"></div>
+      <div class="button-row">
+        <button id="itemsBackButton">戻る</button>
+      </div>
+    </div>
+
+    <!-- ポップアップ -->
+    <div id="popup" class="popup hidden">
+      <div class="popup-inner">
+        <p id="popupMessage"></p>
+        <div class="button-row">
+          <button id="popupYesButton">はい</button>
+          <button id="popupNoButton">いいえ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
