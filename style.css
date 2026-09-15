@@ -35,6 +35,19 @@ html, body {
 /* =============================== */
 /*  各画面（screen）               */
 /* =============================== */
+.status-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.status-list li {
+  margin: 6px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  font-size: 16px;
+}
 
 .screen {
   width: 90vw;
@@ -113,12 +126,14 @@ input[type="text"] {
 .battle-graphics {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 40px;
   pointer-events: none;
 }
 
+
+
 .battle-graphics img {
-  max-height: 30vh;
+  max-height: 40vh;
   object-fit: contain;
 }
 
@@ -127,9 +142,20 @@ input[type="text"] {
   max-width: 200px;
 }
 
-.battle-enemy {
-  width: 18%;
+.enemy-small {
+  width: 15%;
   max-width: 200px;
+  object-fit: contain;
+}
+
+.boss-enemy {
+  height: 30vh;
+  max-height: 32vh;
+  object-fit: contain;
+}
+
+.battle-enemy {
+  object-fit: contain;
 }
 
 .battle-status {
@@ -146,10 +172,61 @@ input[type="text"] {
   margin-top: 12px;
   padding: 8px;
   border: 1px solid #888;
-  height: 160px;
+  height: 10vh;
   overflow-y: auto;
   font-size: 14px;
   background: #111;
+}
+
+.hit-flash {
+  animation: hitFlash 0.5s ease-out;
+}
+
+@keyframes hitFlash {
+  0% {
+    filter: brightness(3) saturate(2) drop-shadow(0 0 25px red);
+    transform: scale(1.1);
+  }
+  50% {
+    filter: brightness(2) saturate(1.5) drop-shadow(0 0 15px orange);
+    transform: scale(1.05);
+  }
+  100% {
+    filter: none;
+    transform: scale(1);
+  }
+}
+
+.pinch {
+  animation: pinchFlash 0.8s infinite;
+}
+
+@keyframes pinchFlash {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(2) saturate(2) drop-shadow(0 0 15px red); }
+  100% { filter: brightness(1); }
+}
+
+.levelup-flash {
+  animation: levelUpFlash 0.8s ease-out;
+}
+
+@keyframes levelUpFlash {
+  0% { filter: brightness(3) saturate(2); }
+  50% { filter: brightness(4) saturate(3); }
+  100% { filter: none; }
+}
+
+.shake {
+  animation: shakeAnim 0.3s ease;
+}
+
+@keyframes shakeAnim {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-6px); }
+  100% { transform: translateX(0); }
 }
 
 /* =============================== */

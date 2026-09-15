@@ -10,59 +10,67 @@
   let isBossBattle = false;
 
   const player = {
-    name: "",
-    level: 1,
-    hp: 11,
-    maxHp: 11,
-    baseHp: 10,
-    atk: 2,
-    baseAtk: 1,
-    exp: 0,
-    nextExp: 10,
-    gold: 0,
-    weapon: null,
-    armor: null,
-    items: {
-      potion: 0,
-      hiPotion: 0,
-      charm: 0
-    },
-    storage: []
-  };
+  name: "",
+  level: 1,
+
+  // 実際の初期ステータス
+  hp: 35,
+  maxHp: 35,
+  atk: 6,
+  def: 3,
+
+  // レベルアップ計算に使われる基礎値（ここが初期値と一致していないと戻される）
+  baseHp: 35,
+  baseAtk: 6,
+
+  exp: 0,
+  nextExp: 10,
+  gold: 0,
+  weapon: null,
+  armor: null,
+  items: {
+    potion: 0,
+    hiPotion: 0,
+    charm: 0
+  },
+  storage: []
+};
+
+
 
   const enemies = {
     normal: {
       name: "ゴースト",
       maxHp: 10,
       atk: 3,
-      exp: 5,
-      gold: 8,
+      exp: 10,
+      gold: 20,
       img: "ghost.png"
     },
     boss: {
       name: "鬼ゴースト",
-      maxHp: 30,
-      atk: 6,
-      exp: 30,
+      maxHp: 1000,
+      atk: 40,
+      exp: 300,
       gold: 50,
       img: "boss_ghost.png"
     }
   };
 
   const itemDefinitions = {
-    potion: { id: "potion", name: "回復薬", heal: 10, price: 10 },
-    hiPotion: { id: "hiPotion", name: "強回復薬", heal: 20, price: 25 },
-    charm: { id: "charm", name: "お守り", atkUp: 2, price: 50 }
+    potion: { id: "potion", name: "回復薬", heal: 10, price: 100 },
+    hiPotion: { id: "hiPotion", name: "強回復薬", heal: 100, price: 500 },
+    charm: { id: "charm", name: "お守り", atkUp: 20, price: 250 }
   };
 
   const equipDefinitions = {
     woodStick: { id: "woodStick", name: "木の枝", type: "weapon", power: 1, price: 5, nonBuyable: true },
     clothes: { id: "clothes", name: "普段着", type: "armor", hp: 1, price: 5, nonBuyable: true },
-    woodSword: { id: "woodSword", name: "木の剣", type: "weapon", power: 2, price: 30, nonBuyable: false },
-    ironSword: { id: "ironSword", name: "鉄の剣", type: "weapon", power: 4, price: 60, nonBuyable: false },
-    ghostSword: { id: "ghostSword", name: "ゴーストバスター剣", type: "weapon", power: 7, price: 120, nonBuyable: false },
-    leatherArmor: { id: "leatherArmor", name: "皮の服", type: "armor", hp: 5, price: 20, nonBuyable: false },
-    heavyArmor: { id: "heavyArmor", name: "鎧", type: "armor", hp: 10, price: 50, nonBuyable: false }
+    woodSword: { id: "woodSword", name: "木の剣", type: "weapon", power: 10, price: 130, nonBuyable: false },
+    ironSword: { id: "ironSword", name: "鉄の剣", type: "weapon", power: 20, price: 260, nonBuyable: false },
+    ghostSword: { id: "ghostSword", name: "ゴーストバスター剣", type: "weapon", power: 70, price: 1200, nonBuyable: false },
+    leatherArmor: { id: "leatherArmor", name: "皮の服", type: "armor", hp: 15, price: 120, nonBuyable: false },
+    heavyArmor: { id: "heavyArmor", name: "鎧", type: "armor", hp: 50, price: 500, nonBuyable: false }
   };
 
   const bgm = {
@@ -121,8 +129,8 @@
   function giveInitialEquip() {
     player.weapon = { ...equipDefinitions.woodStick };
     player.armor = { ...equipDefinitions.clothes };
-    player.baseAtk = 1;
-    player.baseHp = 10;
+    player.baseAtk = 6;
+    player.baseHp = 35;
     updateStatusValues();
     player.hp = player.maxHp;
   }
@@ -173,7 +181,7 @@
   }
 
   function showStatusScreen() {
-    document.getElementById("statusText").textContent = getStatusText();
+    updateStatusScreen();
     showScreen("screen-status");
   }
 
@@ -255,6 +263,17 @@
     if (isInBattle) updateBattleStatus();
     if (currentScreenId === "screen-items") showItemsScreen();
   }
+
+  function updateStatusScreen() {
+    document.getElementById("stName").textContent = player.name;
+    document.getElementById("stLevel").textContent = player.level;
+    document.getElementById("stHp").textContent = `${player.hp} / ${player.maxHp}`;
+    document.getElementById("stAtk").textContent = player.atk;
+    document.getElementById("stDef").textContent = player.def;
+    document.getElementById("stNextExp").textContent = player.nextExp - player.exp;
+    document.getElementById("stGold").textContent = player.gold;
+  }
+
 
   function selectEquip(id) {
     popupAction = "equipItem";
@@ -473,6 +492,17 @@
     document.getElementById("battleEnemyImg").src = currentEnemy.img;
     document.getElementById("battleHeroImg").src = "hero.png";
 
+    // ★ここに追加（安全な位置）
+    const enemyImg = document.getElementById("battleEnemyImg");
+
+    if (isBoss) {
+      enemyImg.classList.add("boss-enemy");
+      enemyImg.classList.remove("enemy-small");
+    } else {
+      enemyImg.classList.remove("boss-enemy");
+      enemyImg.classList.add("enemy-small");
+    }
+
     if (isBoss) {
       playBgm("bossBattle");
       setBackground("castle_bg.png");
@@ -498,43 +528,75 @@
 
     document.getElementById("enemyStatusText").textContent =
       `名前：${currentEnemy.name}\nHP：${currentEnemy.hp} / ${currentEnemy.maxHp}\n攻撃力：${currentEnemy.atk}`;
+    const heroImg = document.getElementById("battleHeroImg");
+    if (player.hp <= player.maxHp * 0.3) {
+      heroImg.classList.add("pinch");
+    } else {
+      heroImg.classList.remove("pinch");
+    }  
   }
 
   function appendBattleLog(text) {
     const log = document.getElementById("battleLog");
-    log.textContent += text + "\n";
-    log.scrollTop = log.scrollHeight;
+    log.innerHTML += text.replace(/\n/g, "<br>") + "<br>";
   }
 
+
   function playerAttack() {
-    const damage = Math.max(1, player.atk + Math.floor(Math.random() * 3) - 1);
+    const log = document.getElementById("battleLog");
+    log.textContent = "";  
+    const damage = Math.max(1, currentEnemy.atk - player.def + Math.floor(Math.random() * 10));
     currentEnemy.hp -= damage;
     if (currentEnemy.hp < 0) currentEnemy.hp = 0;
-
+  
     se.attack.play();
+  
+    // ★ 安全な演出（nullチェック必須）
+    const enemyImg = document.getElementById("battleEnemyImg");
+      if (enemyImg) {
+        enemyImg.classList.add("hit-flash");
+        setTimeout(() => enemyImg.classList.remove("hit-flash"), 500);
+      }  
     appendBattleLog(`勇者 ${player.name} のこうげき！ ${currentEnemy.name}に ${damage} のダメージ！`);
     updateBattleStatus();
-
+  
     if (currentEnemy.hp <= 0) {
       winBattle();
     } else {
-      enemyTurn();
+      setTimeout(() => {
+        enemyTurn();
+      }, 1000); // ← ディレイ増やしたいならここ
     }
   }
 
   function enemyTurn() {
+    const log = document.getElementById("battleLog");
+    log.textContent = "";
+
     const damage = Math.max(1, currentEnemy.atk + Math.floor(Math.random() * 3) - 1);
     player.hp -= damage;
     if (player.hp < 0) player.hp = 0;
-
+  
     se.enemyAttack.play();
+  
+    // ★ 安全な演出（nullチェック必須）
+    const heroImg = document.getElementById("battleHeroImg");
+    if (heroImg) {
+      heroImg.classList.add("shake");
+      setTimeout(() => heroImg.classList.remove("shake"), 300);
+    }
+  
     appendBattleLog(`${currentEnemy.name}のこうげき！ ${player.name}は ${damage} のダメージを受けた！`);
     updateBattleStatus();
+    if (player.hp > 0 && player.hp <= player.maxHp * 0.3) {
+      appendBattleLog(`⚠ ピンチ！これ以上ダメージを受けると危険！`);
+    }
 
     if (player.hp <= 0) {
       loseBattle();
     }
   }
+
 
   function winBattle() {
     appendBattleLog(`${currentEnemy.name}をたおした！`);
@@ -576,11 +638,15 @@
     while (player.exp >= player.nextExp) {
       player.exp -= player.nextExp;
       player.level++;
-      player.baseHp += 2;
-      player.baseAtk += 1;
+      player.baseHp += 4;
+      player.baseAtk += 2;
+      player.def += 2;
       player.nextExp += 10;
       updateStatusValues();
       appendBattleLog(`レベルが ${player.level} に上がった！`);
+      const battleScreen = document.getElementById("screen-battle");
+      battleScreen.classList.add("levelup-flash");
+      setTimeout(() => battleScreen.classList.remove("levelup-flash"), 800);
     }
   }
 

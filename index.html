@@ -177,11 +177,22 @@
     <!-- ========================= -->
     <div id="screen-status" class="screen hidden">
       <h2>ステータス</h2>
-      <p id="statusText"></p>
+
+      <ul id="statusList" class="status-list">
+        <li>名前：<span id="stName"></span></li>
+        <li>レベル：<span id="stLevel"></span></li>
+        <li>HP：<span id="stHp"></span></li>
+        <li>攻撃力：<span id="stAtk"></span></li>
+        <li>防御力：<span id="stDef"></span></li>
+        <li>次のレベルまで：<span id="stNextExp"></span></li>
+        <li>所持金：<span id="stGold"></span> G</li>
+      </ul>
+    
       <div class="button-row">
         <button id="statusBackButton">戻る</button>
       </div>
     </div>
+
 
     <!-- ========================= -->
     <!--  アイテムストレージ -->
