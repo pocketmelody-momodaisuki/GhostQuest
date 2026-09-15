@@ -1,7 +1,11 @@
+/* =============================== */
+/*  全体設定                       */
+/* =============================== */
+
 html, body {
   margin: 0;
   padding: 0;
-  background: black;
+  background: transparent;
   color: white;
   font-family: "Yu Gothic", sans-serif;
   overscroll-behavior: none;
@@ -9,6 +13,17 @@ html, body {
   touch-action: none;
 }
 
+/* 背景画像（画面ごとに切り替え） */
+.bg-image {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+}
+
+/* ゲーム全体を中央に配置 */
 #gameContainer {
   width: 100vw;
   height: 100vh;
@@ -17,6 +32,10 @@ html, body {
   justify-content: center;
 }
 
+/* =============================== */
+/*  各画面（screen）               */
+/* =============================== */
+
 .screen {
   width: 90vw;
   max-width: 800px;
@@ -24,7 +43,8 @@ html, body {
   border: 2px solid #888;
   padding: 16px;
   box-sizing: border-box;
-  background: #000;
+  background: rgba(0, 0, 0, 0.7);
+  overflow: hidden;
 }
 
 .hidden {
@@ -40,6 +60,10 @@ h1, h2, h3 {
   text-align: center;
   line-height: 1.6;
 }
+
+/* =============================== */
+/*  ボタン                         */
+/* =============================== */
 
 .button-row {
   display: flex;
@@ -70,12 +94,36 @@ button:hover {
   background: #555;
 }
 
+/* =============================== */
+/*  入力欄                         */
+/* =============================== */
+
 input[type="text"] {
   width: 80%;
   padding: 8px;
   font-size: 16px;
   margin-top: 8px;
   box-sizing: border-box;
+}
+
+/* =============================== */
+/*  戦闘画面                       */
+/* =============================== */
+
+.battle-graphics {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.battle-hero {
+  width: 40%;
+  max-width: 200px;
+}
+
+.battle-enemy {
+  width: 40%;
+  max-width: 200px;
 }
 
 .battle-status {
@@ -98,6 +146,10 @@ input[type="text"] {
   background: #111;
 }
 
+/* =============================== */
+/*  スクロール領域（アイテム等）   */
+/* =============================== */
+
 .scroll-area {
   margin-top: 8px;
   padding: 8px;
@@ -118,6 +170,10 @@ input[type="text"] {
   background: #222;
 }
 
+/* =============================== */
+/*  ポップアップ                   */
+/* =============================== */
+
 .popup {
   position: fixed;
   inset: 0;
@@ -125,6 +181,11 @@ input[type="text"] {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 999;
+}
+
+.popup.hidden {
+  display: none;
 }
 
 .popup-inner {
@@ -140,8 +201,13 @@ input[type="text"] {
   text-align: center;
 }
 
+
+/* =============================== */
+/*  エンディング                   */
+/* =============================== */
+
 .ending-screen {
-  background: black;
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .ending-text {
@@ -154,6 +220,10 @@ input[type="text"] {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* =============================== */
+/*  PC向け中央寄せ                 */
+/* =============================== */
 
 @media (min-width: 800px) {
   #gameContainer {

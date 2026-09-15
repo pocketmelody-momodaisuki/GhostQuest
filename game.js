@@ -2,7 +2,7 @@
   "use strict";
 
   let currentScreenId = "screen-name";
-  let currentShopType = null; // "item" or "weapon"
+  let currentShopType = null;
   let popupAction = null;
   let popupPayload = null;
   let isInBattle = false;
@@ -36,14 +36,16 @@
       maxHp: 10,
       atk: 3,
       exp: 5,
-      gold: 8
+      gold: 8,
+      img: "ghost.png"
     },
     boss: {
       name: "鬼ゴースト",
       maxHp: 30,
       atk: 6,
       exp: 30,
-      gold: 50
+      gold: 50,
+      img: "boss_ghost.png"
     }
   };
 
@@ -54,72 +56,60 @@
   };
 
   const equipDefinitions = {
-    woodStick: {
-      id: "woodStick",
-      name: "木の枝",
-      type: "weapon",
-      power: 1,
-      price: 5,
-      nonBuyable: true
-    },
-    clothes: {
-      id: "clothes",
-      name: "普段着",
-      type: "armor",
-      hp: 1,
-      price: 5,
-      nonBuyable: true
-    },
-    woodSword: {
-      id: "woodSword",
-      name: "木の剣",
-      type: "weapon",
-      power: 2,
-      price: 30,
-      nonBuyable: false
-    },
-    ironSword: {
-      id: "ironSword",
-      name: "鉄の剣",
-      type: "weapon",
-      power: 4,
-      price: 60,
-      nonBuyable: false
-    },
-    ghostSword: {
-      id: "ghostSword",
-      name: "ゴーストバスター剣",
-      type: "weapon",
-      power: 7,
-      price: 120,
-      nonBuyable: false
-    },
-    leatherArmor: {
-      id: "leatherArmor",
-      name: "皮の服",
-      type: "armor",
-      hp: 5,
-      price: 20,
-      nonBuyable: false
-    },
-    heavyArmor: {
-      id: "heavyArmor",
-      name: "鎧",
-      type: "armor",
-      hp: 10,
-      price: 50,
-      nonBuyable: false
-    }
+    woodStick: { id: "woodStick", name: "木の枝", type: "weapon", power: 1, price: 5, nonBuyable: true },
+    clothes: { id: "clothes", name: "普段着", type: "armor", hp: 1, price: 5, nonBuyable: true },
+    woodSword: { id: "woodSword", name: "木の剣", type: "weapon", power: 2, price: 30, nonBuyable: false },
+    ironSword: { id: "ironSword", name: "鉄の剣", type: "weapon", power: 4, price: 60, nonBuyable: false },
+    ghostSword: { id: "ghostSword", name: "ゴーストバスター剣", type: "weapon", power: 7, price: 120, nonBuyable: false },
+    leatherArmor: { id: "leatherArmor", name: "皮の服", type: "armor", hp: 5, price: 20, nonBuyable: false },
+    heavyArmor: { id: "heavyArmor", name: "鎧", type: "armor", hp: 10, price: 50, nonBuyable: false }
   };
 
+  const bgm = {
+    village: document.getElementById("bgmVillage"),
+    field: document.getElementById("bgmField"),
+    enemyBattle: document.getElementById("bgmEnemyBattle"),
+    bossBattle: document.getElementById("bgmBossBattle"),
+    prologue: document.getElementById("bgmPrologue"),
+    ending: document.getElementById("bgmEnding")
+  };
+
+  const se = {
+    attack: document.getElementById("seAttack"),
+    enemyAttack: document.getElementById("seEnemyAttack"),
+    damage: document.getElementById("seDamage"),
+    playerDead: document.getElementById("sePlayerDead"),
+    dead: document.getElementById("seDead"),
+    encounter: document.getElementById("seEncounter"),
+    bossEncounter: document.getElementById("seBossEncounter"),
+    enemyBattleEnd: document.getElementById("seEnemyBattleEnd"),
+    bossBattleEnd: document.getElementById("seBossBattleEnd"),
+    click: document.getElementById("seClick"),
+    buy: document.getElementById("seBuy"),
+    sell: document.getElementById("seSell"),
+    item: document.getElementById("seItem"),
+    equip: document.getElementById("seEquip"),
+    heal: document.getElementById("seHeal")
+  };
+
+  function stopAllBgm() {
+    Object.values(bgm).forEach(b => {
+      b.pause();
+      b.currentTime = 0;
+    });
+  }
+
+  function playBgm(name) {
+    stopAllBgm();
+    if (bgm[name]) bgm[name].play();
+  }
+
+  function setBackground(src) {
+    document.getElementById("bgImage").src = src;
+  }
   function showScreen(id) {
-    const screens = document.querySelectorAll(".screen");
-    screens.forEach(s => {
-      if (s.id === id) {
-        s.classList.remove("hidden");
-      } else {
-        s.classList.add("hidden");
-      }
+    document.querySelectorAll(".screen").forEach(s => {
+      s.classList.toggle("hidden", s.id !== id);
     });
     currentScreenId = id;
   }
@@ -129,55 +119,47 @@
   }
 
   function giveInitialEquip() {
-    const weapon = { ...equipDefinitions.woodStick };
-    const armor = { ...equipDefinitions.clothes };
-    player.weapon = weapon;
-    player.armor = armor;
+    player.weapon = { ...equipDefinitions.woodStick };
+    player.armor = { ...equipDefinitions.clothes };
     player.baseAtk = 1;
     player.baseHp = 10;
-    player.atk = player.baseAtk + weapon.power;
-    player.maxHp = player.baseHp + armor.hp;
+    updateStatusValues();
     player.hp = player.maxHp;
   }
 
   function updateStatusValues() {
-    let weaponPower = 0;
-    let armorHp = 0;
-    if (player.weapon && typeof player.weapon.power === "number") {
-      weaponPower = player.weapon.power;
-    }
-    if (player.armor && typeof player.armor.hp === "number") {
-      armorHp = player.armor.hp;
-    }
-    player.atk = player.baseAtk + weaponPower;
-    player.maxHp = player.baseHp + armorHp;
-    if (player.hp > player.maxHp) {
-      player.hp = player.maxHp;
-    }
+    const wp = player.weapon ? player.weapon.power : 0;
+    const ap = player.armor ? player.armor.hp : 0;
+    player.atk = player.baseAtk + wp;
+    player.maxHp = player.baseHp + ap;
+    if (player.hp > player.maxHp) player.hp = player.maxHp;
   }
 
   function showPrologue() {
+    playBgm("prologue");
+    setBackground("village_bg.png");
     showScreen("screen-prologue");
   }
 
   function showElder() {
-    const elderText = document.getElementById("elderText");
-    elderText.textContent = `勇者 ${player.name} よ……\n村を脅かす鬼ゴーストを倒し、\n平和を取り戻してくれ……`;
+    document.getElementById("elderText").textContent =
+      `勇者 ${player.name} よ……\n村を脅かす鬼ゴーストを倒し、\n平和を取り戻してくれ……`;
     showScreen("screen-elder");
   }
 
   function startVillage() {
+    playBgm("village");
+    setBackground("village_bg.png");
     showScreen("screen-village");
   }
 
   function healPlayer() {
     player.hp = player.maxHp;
+    se.heal.play();
     alert("HPが全回復した！");
   }
 
   function getStatusText() {
-    const weaponName = player.weapon ? player.weapon.name : "なし";
-    const armorName = player.armor ? player.armor.name : "なし";
     return (
       `名前：${player.name}\n` +
       `レベル：${player.level}\n` +
@@ -185,356 +167,246 @@
       `攻撃力：${player.atk}\n` +
       `経験値：${player.exp} / ${player.nextExp}\n` +
       `所持金：${player.gold}G\n` +
-      `武器：${weaponName}\n` +
-      `防具：${armorName}`
+      `武器：${player.weapon ? player.weapon.name : "なし"}\n` +
+      `防具：${player.armor ? player.armor.name : "なし"}`
     );
   }
 
   function showStatusScreen() {
-    const statusTextElem = document.getElementById("statusText");
-    statusTextElem.textContent = getStatusText();
+    document.getElementById("statusText").textContent = getStatusText();
     showScreen("screen-status");
   }
 
   function showItemsScreen() {
-    const goldText = document.getElementById("itemsGoldText");
-    goldText.textContent = `所持金：${player.gold}G`;
+    document.getElementById("itemsGoldText").textContent = `所持金：${player.gold}G`;
     const list = document.getElementById("itemList");
     list.innerHTML = "";
+
     if (player.items.potion > 0) {
-      const div = document.createElement("div");
-      div.textContent = `回復薬 × ${player.items.potion}`;
-      div.addEventListener("click", () => selectItem("potion"));
-      list.appendChild(div);
+      const d = document.createElement("div");
+      d.textContent = `回復薬 × ${player.items.potion}`;
+      d.onclick = () => selectItem("potion");
+      list.appendChild(d);
     }
     if (player.items.hiPotion > 0) {
-      const div = document.createElement("div");
-      div.textContent = `強回復薬 × ${player.items.hiPotion}`;
-      div.addEventListener("click", () => selectItem("hiPotion"));
-      list.appendChild(div);
+      const d = document.createElement("div");
+      d.textContent = `強回復薬 × ${player.items.hiPotion}`;
+      d.onclick = () => selectItem("hiPotion");
+      list.appendChild(d);
     }
     if (player.items.charm > 0) {
-      const div = document.createElement("div");
-      div.textContent = `お守り × ${player.items.charm}`;
-      div.addEventListener("click", () => selectItem("charm"));
-      list.appendChild(div);
+      const d = document.createElement("div");
+      d.textContent = `お守り × ${player.items.charm}`;
+      d.onclick = () => selectItem("charm");
+      list.appendChild(d);
     }
+
     player.storage.forEach(item => {
-      const div = document.createElement("div");
-      div.textContent = item.name;
-      div.addEventListener("click", () => selectEquip(item.id));
-      list.appendChild(div);
+      const d = document.createElement("div");
+      d.textContent = item.name;
+      d.onclick = () => selectEquip(item.id);
+      list.appendChild(d);
     });
+
     if (!list.firstChild) {
-      const div = document.createElement("div");
-      div.textContent = "何も持っていません。";
-      list.appendChild(div);
+      const d = document.createElement("div");
+      d.textContent = "何も持っていません。";
+      list.appendChild(d);
     }
+
     showScreen("screen-items");
+  }
+
+  function showPopup(msg) {
+    document.getElementById("popupMessage").textContent = msg;
+    document.getElementById("popup").classList.remove("hidden");
+  }
+
+  function hidePopup() {
+    document.getElementById("popup").classList.add("hidden");
+    popupAction = null;
+    popupPayload = null;
   }
 
   function selectItem(type) {
     popupAction = "useItem";
     popupPayload = type;
+    showPopup(`${itemDefinitions[type].name}を使いますか？`);
+  }
+
+  function useItem(type) {
     const def = itemDefinitions[type];
-    let message = "";
-    if (!def) {
-      message = "このアイテムは使えません。";
-    } else if (def.heal) {
-      message = `${def.name}を使いますか？`;
-    } else if (def.atkUp) {
-      message = `${def.name}を使いますか？`;
-    } else {
-      message = "このアイテムを使いますか？";
+    if (type === "potion") {
+      if (player.items.potion <= 0) return alert("回復薬を持っていません。");
+      player.items.potion--;
+      player.hp = Math.min(player.maxHp, player.hp + def.heal);
+    } else if (type === "hiPotion") {
+      if (player.items.hiPotion <= 0) return alert("強回復薬を持っていません。");
+      player.items.hiPotion--;
+      player.hp = Math.min(player.maxHp, player.hp + def.heal);
+    } else if (type === "charm") {
+      if (player.items.charm <= 0) return alert("お守りを持っていません。");
+      player.items.charm--;
+      player.baseAtk += def.atkUp;
+      updateStatusValues();
     }
-    showPopup(message);
+    se.item.play();
+    alert("使用しました！");
+    if (isInBattle) updateBattleStatus();
+    if (currentScreenId === "screen-items") showItemsScreen();
   }
 
   function selectEquip(id) {
     popupAction = "equipItem";
     popupPayload = id;
     const item = getEquipById(id);
-    if (!item) {
-      showPopup("この装備は見つかりません。");
-      return;
-    }
-    const message = `${item.name}を装備しますか？`;
-    showPopup(message);
-  }
-
-  function showPopup(message) {
-    const popup = document.getElementById("popup");
-    const msgElem = document.getElementById("popupMessage");
-    msgElem.textContent = message;
-    popup.classList.remove("hidden");
-  }
-
-  function hidePopup() {
-    const popup = document.getElementById("popup");
-    popup.classList.add("hidden");
-    popupAction = null;
-    popupPayload = null;
-  }
-
-  function useItem(type) {
-    const def = itemDefinitions[type];
-    if (!def) {
-      alert("このアイテムは使えません。");
-      return;
-    }
-    if (type === "potion") {
-      if (player.items.potion <= 0) {
-        alert("回復薬を持っていません。");
-        return;
-      }
-      player.items.potion -= 1;
-      player.hp += def.heal;
-      if (player.hp > player.maxHp) {
-        player.hp = player.maxHp;
-      }
-      alert("HPが回復した！");
-    } else if (type === "hiPotion") {
-      if (player.items.hiPotion <= 0) {
-        alert("強回復薬を持っていません。");
-        return;
-      }
-      player.items.hiPotion -= 1;
-      player.hp += def.heal;
-      if (player.hp > player.maxHp) {
-        player.hp = player.maxHp;
-      }
-      alert("HPが大きく回復した！");
-    } else if (type === "charm") {
-      if (player.items.charm <= 0) {
-        alert("お守りを持っていません。");
-        return;
-      }
-      player.items.charm -= 1;
-      player.baseAtk += def.atkUp;
-      updateStatusValues();
-      alert("攻撃力が上がった！");
-    } else {
-      alert("このアイテムはまだ使えません。");
-    }
-    if (isInBattle) {
-      updateBattleStatus();
-    }
-    if (currentScreenId === "screen-items") {
-      showItemsScreen();
-    }
+    showPopup(`${item.name}を装備しますか？`);
   }
 
   function getEquipById(id) {
-    if (player.weapon && player.weapon.id === id) {
-      return player.weapon;
-    }
-    if (player.armor && player.armor.id === id) {
-      return player.armor;
-    }
-    for (let i = 0; i < player.storage.length; i++) {
-      if (player.storage[i].id === id) {
-        return player.storage[i];
-      }
-    }
-    return null;
+    if (player.weapon && player.weapon.id === id) return player.weapon;
+    if (player.armor && player.armor.id === id) return player.armor;
+    return player.storage.find(i => i.id === id);
   }
 
   function removeFromStorageById(id) {
-    for (let i = 0; i < player.storage.length; i++) {
-      if (player.storage[i].id === id) {
-        player.storage.splice(i, 1);
-        return;
-      }
-    }
+    const i = player.storage.findIndex(x => x.id === id);
+    if (i >= 0) player.storage.splice(i, 1);
   }
 
   function equipItem(id) {
     const item = getEquipById(id);
-    if (!item) {
-      alert("装備が見つかりません。");
-      return;
-    }
     if (item.type === "weapon") {
-      if (player.weapon) {
-        player.storage.push(player.weapon);
-      }
+      if (player.weapon) player.storage.push(player.weapon);
       player.weapon = item;
-      removeFromStorageById(id);
-    } else if (item.type === "armor") {
-      if (player.armor) {
-        player.storage.push(player.armor);
-      }
-      player.armor = item;
-      removeFromStorageById(id);
     } else {
-      alert("この装備は装備できません。");
-      return;
+      if (player.armor) player.storage.push(player.armor);
+      player.armor = item;
     }
+    removeFromStorageById(id);
     updateStatusValues();
-    alert("装備を変更しました！");
-    if (currentScreenId === "screen-items") {
-      showItemsScreen();
-    }
-    if (currentScreenId === "screen-status") {
-      showStatusScreen();
-    }
+    se.equip.play();
+    alert("装備しました！");
+    if (currentScreenId === "screen-items") showItemsScreen();
+    if (currentScreenId === "screen-status") showStatusScreen();
   }
 
   function enterShop(type) {
     currentShopType = type;
-    const titleElem = document.getElementById("shopTitle");
-    if (type === "item") {
-      titleElem.textContent = "道具屋";
-    } else {
-      titleElem.textContent = "武器屋";
-    }
+    document.getElementById("shopTitle").textContent =
+      type === "item" ? "道具屋" : "武器屋";
     showScreen("screen-shopMenu");
   }
 
   function showShopBuy() {
-    const titleElem = document.getElementById("shopBuyTitle");
-    const goldText = document.getElementById("shopGoldText");
+    document.getElementById("shopGoldText").textContent = `所持金：${player.gold}G`;
     const list = document.getElementById("shopBuyList");
-    goldText.textContent = `所持金：${player.gold}G`;
     list.innerHTML = "";
-    if (currentShopType === "item") {
-      Object.keys(itemDefinitions).forEach(key => {
-        const def = itemDefinitions[key];
-        const div = document.createElement("div");
-        div.textContent = `${def.name}（${def.price}G）`;
-        div.addEventListener("click", () => buyItem(key));
-        list.appendChild(div);
-      });
-      titleElem.textContent = "道具屋：買い物";
-    } else {
-      Object.keys(equipDefinitions).forEach(key => {
-        const def = equipDefinitions[key];
-        if (def.nonBuyable) {
-          return;
-        }
-        const div = document.createElement("div");
-        if (def.type === "weapon") {
-          div.textContent = `${def.name}（攻撃＋${def.power}） ${def.price}G`;
-        } else if (def.type === "armor") {
-          div.textContent = `${def.name}（HP＋${def.hp}） ${def.price}G`;
-        } else {
-          div.textContent = `${def.name} ${def.price}G`;
-        }
-        div.addEventListener("click", () => buyEquip(key));
-        list.appendChild(div);
-      });
-      titleElem.textContent = "武器屋：買い物";
-    }
-    showScreen("screen-shopBuy");
-  }
 
-  function showShopSell() {
-    const goldText = document.getElementById("shopSellGoldText");
-    const list = document.getElementById("shopSellList");
-    goldText.textContent = `所持金：${player.gold}G`;
-    list.innerHTML = "";
-    if (player.items.potion > 0) {
-      const div = document.createElement("div");
-      div.textContent = `回復薬 × ${player.items.potion}`;
-      div.addEventListener("click", () => sellItem("potion"));
-      list.appendChild(div);
+    if (currentShopType === "item") {
+      Object.keys(itemDefinitions).forEach(k => {
+        const def = itemDefinitions[k];
+        const d = document.createElement("div");
+        d.textContent = `${def.name}（${def.price}G）`;
+        d.onclick = () => buyItem(k);
+        list.appendChild(d);
+      });
+    } else {
+      Object.keys(equipDefinitions).forEach(k => {
+        const def = equipDefinitions[k];
+        if (def.nonBuyable) return;
+        const d = document.createElement("div");
+        d.textContent =
+          def.type === "weapon"
+            ? `${def.name}（攻撃＋${def.power}） ${def.price}G`
+            : `${def.name}（HP＋${def.hp}） ${def.price}G`;
+        d.onclick = () => buyEquip(k);
+        list.appendChild(d);
+      });
     }
-    if (player.items.hiPotion > 0) {
-      const div = document.createElement("div");
-      div.textContent = `強回復薬 × ${player.items.hiPotion}`;
-      div.addEventListener("click", () => sellItem("hiPotion"));
-      list.appendChild(div);
-    }
-    if (player.items.charm > 0) {
-      const div = document.createElement("div");
-      div.textContent = `お守り × ${player.items.charm}`;
-      div.addEventListener("click", () => sellItem("charm"));
-      list.appendChild(div);
-    }
-    player.storage.forEach(item => {
-      const div = document.createElement("div");
-      div.textContent = item.name;
-      div.addEventListener("click", () => sellEquip(item.id));
-      list.appendChild(div);
-    });
-    if (!list.firstChild) {
-      const div = document.createElement("div");
-      div.textContent = "売れるものを持っていません。";
-      list.appendChild(div);
-    }
-    showScreen("screen-shopSell");
+
+    showScreen("screen-shopBuy");
   }
 
   function buyItem(type) {
     const def = itemDefinitions[type];
-    if (!def) {
-      alert("このアイテムは買えません。");
-      return;
-    }
-    if (player.gold < def.price) {
-      alert("お金が足りません。");
-      return;
-    }
+    if (player.gold < def.price) return alert("お金が足りません。");
     player.gold -= def.price;
-    if (type === "potion") {
-      player.items.potion += 1;
-    } else if (type === "hiPotion") {
-      player.items.hiPotion += 1;
-    } else if (type === "charm") {
-      player.items.charm += 1;
-    }
+    if (type === "potion") player.items.potion++;
+    else if (type === "hiPotion") player.items.hiPotion++;
+    else player.items.charm++;
+    se.buy.play();
     alert("購入しました！");
     showShopBuy();
   }
 
   function buyEquip(key) {
     const def = equipDefinitions[key];
-    if (!def) {
-      alert("この装備は買えません。");
-      return;
-    }
-    if (player.gold < def.price) {
-      alert("お金が足りません。");
-      return;
-    }
+    if (player.gold < def.price) return alert("お金が足りません。");
     player.gold -= def.price;
     const item = { ...def };
     if (item.type === "weapon") {
-      if (player.weapon) {
-        player.storage.push(player.weapon);
-      }
+      if (player.weapon) player.storage.push(player.weapon);
       player.weapon = item;
-    } else if (item.type === "armor") {
-      if (player.armor) {
-        player.storage.push(player.armor);
-      }
-      player.armor = item;
     } else {
-      player.storage.push(item);
+      if (player.armor) player.storage.push(player.armor);
+      player.armor = item;
     }
     updateStatusValues();
+    se.buy.play();
     alert("装備を手に入れた！");
     showShopBuy();
   }
 
+  function showShopSell() {
+    document.getElementById("shopSellGoldText").textContent = `所持金：${player.gold}G`;
+    const list = document.getElementById("shopSellList");
+    list.innerHTML = "";
+
+    if (player.items.potion > 0) {
+      const d = document.createElement("div");
+      d.textContent = `回復薬 × ${player.items.potion}`;
+      d.onclick = () => sellItem("potion");
+      list.appendChild(d);
+    }
+    if (player.items.hiPotion > 0) {
+      const d = document.createElement("div");
+      d.textContent = `強回復薬 × ${player.items.hiPotion}`;
+      d.onclick = () => sellItem("hiPotion");
+      list.appendChild(d);
+    }
+    if (player.items.charm > 0) {
+      const d = document.createElement("div");
+      d.textContent = `お守り × ${player.items.charm}`;
+      d.onclick = () => sellItem("charm");
+      list.appendChild(d);
+    }
+
+    player.storage.forEach(item => {
+      const d = document.createElement("div");
+      d.textContent = item.name;
+      d.onclick = () => sellEquip(item.id);
+      list.appendChild(d);
+    });
+
+    if (!list.firstChild) {
+      const d = document.createElement("div");
+      d.textContent = "売れるものを持っていません。";
+      list.appendChild(d);
+    }
+
+    showScreen("screen-shopSell");
+  }
+
   function sellItem(type) {
     const def = itemDefinitions[type];
-    if (!def) {
-      alert("このアイテムは売れません。");
-      return;
-    }
-    let count = 0;
-    if (type === "potion") {
-      count = player.items.potion;
-    } else if (type === "hiPotion") {
-      count = player.items.hiPotion;
-    } else if (type === "charm") {
-      count = player.items.charm;
-    }
-    if (count <= 0) {
-      alert("そのアイテムを持っていません。");
-      return;
-    }
+    const count =
+      type === "potion" ? player.items.potion :
+      type === "hiPotion" ? player.items.hiPotion :
+      player.items.charm;
+
+    if (count <= 0) return alert("そのアイテムを持っていません。");
+
     const price = Math.floor(def.price / 2);
     popupAction = "sellItem";
     popupPayload = { type, price };
@@ -543,10 +415,6 @@
 
   function sellEquip(id) {
     const item = getEquipById(id);
-    if (!item) {
-      alert("装備が見つかりません。");
-      return;
-    }
     const price = Math.floor(item.price / 2);
     popupAction = "sellEquip";
     popupPayload = { id, price, name: item.name };
@@ -554,86 +422,35 @@
   }
 
   function confirmSellItem(payload) {
-    const type = payload.type;
-    const price = payload.price;
-    if (type === "potion") {
-      if (player.items.potion <= 0) {
-        alert("回復薬を持っていません。");
-        return;
-      }
-      player.items.potion -= 1;
-    } else if (type === "hiPotion") {
-      if (player.items.hiPotion <= 0) {
-        alert("強回復薬を持っていません。");
-        return;
-      }
-      player.items.hiPotion -= 1;
-    } else if (type === "charm") {
-      if (player.items.charm <= 0) {
-        alert("お守りを持っていません。");
-        return;
-      }
-      player.items.charm -= 1;
-    } else {
-      alert("このアイテムは売れません。");
-      return;
-    }
+    const { type, price } = payload;
+
+    if (type === "potion") player.items.potion--;
+    else if (type === "hiPotion") player.items.hiPotion--;
+    else player.items.charm--;
+
     player.gold += price;
+    se.sell.play();
     alert(`${price}Gで売りました。`);
     showShopSell();
   }
 
   function confirmSellEquip(payload) {
-    const id = payload.id;
-    const price = payload.price;
+    const { id, price, name } = payload;
     const item = getEquipById(id);
-    if (!item) {
-      alert("装備が見つかりません。");
-      return;
-    }
-    if (player.weapon && player.weapon.id === id) {
-      player.weapon = null;
-    } else if (player.armor && player.armor.id === id) {
-      player.armor = null;
-    } else {
-      removeFromStorageById(id);
-    }
+
+    if (player.weapon && player.weapon.id === id) player.weapon = null;
+    else if (player.armor && player.armor.id === id) player.armor = null;
+    else removeFromStorageById(id);
+
     player.gold += price;
     updateStatusValues();
-    alert(`${payload.name}を${price}Gで売りました。`);
+    se.sell.play();
+    alert(`${name}を${price}Gで売りました。`);
     showShopSell();
   }
-
-  function saveGame() {
-    try {
-      const data = JSON.stringify(player);
-      localStorage.setItem("ghostQuestSave", data);
-      alert("セーブしました。");
-    } catch (e) {
-      console.error(e);
-      alert("セーブに失敗しました。");
-    }
-  }
-
-  function loadGame() {
-    try {
-      const data = localStorage.getItem("ghostQuestSave");
-      if (!data) {
-        alert("セーブデータがありません。");
-        return;
-      }
-      const obj = JSON.parse(data);
-      Object.assign(player, obj);
-      updateStatusValues();
-      alert("ロードしました。");
-      startVillage();
-    } catch (e) {
-      console.error(e);
-      alert("ロードに失敗しました。");
-    }
-  }
-
   function startField() {
+    playBgm("field");
+    setBackground("field_bg.png");
     document.getElementById("fieldMessage").textContent = "フィールドを歩いています……";
     showScreen("screen-field");
   }
@@ -641,29 +458,45 @@
   function startBattle(isBoss) {
     isInBattle = true;
     isBossBattle = isBoss;
-    const enemyDef = isBoss ? enemies.boss : enemies.normal;
+
+    const def = isBoss ? enemies.boss : enemies.normal;
     currentEnemy = {
-      name: enemyDef.name,
-      hp: enemyDef.maxHp,
-      maxHp: enemyDef.maxHp,
-      atk: enemyDef.atk,
-      exp: enemyDef.exp,
-      gold: enemyDef.gold
+      name: def.name,
+      hp: def.maxHp,
+      maxHp: def.maxHp,
+      atk: def.atk,
+      exp: def.exp,
+      gold: def.gold,
+      img: def.img
     };
-    const title = document.getElementById("battleTitle");
-    title.textContent = isBoss ? "ボス戦" : "戦闘";
+
+    document.getElementById("battleEnemyImg").src = currentEnemy.img;
+    document.getElementById("battleHeroImg").src = "hero.png";
+
+    if (isBoss) {
+      playBgm("bossBattle");
+      setBackground("castle_bg.png");
+      document.getElementById("battleTitle").textContent = "ボス戦";
+      se.bossEncounter.play();
+    } else {
+      playBgm("enemyBattle");
+      setBackground("field_bg.png");
+      document.getElementById("battleTitle").textContent = "戦闘";
+      se.encounter.play();
+    }
+
     const log = document.getElementById("battleLog");
-    log.textContent = `${enemyDef.name}があらわれた！\n`;
+    log.textContent = `${currentEnemy.name}があらわれた！\n`;
+
     updateBattleStatus();
     showScreen("screen-battle");
   }
 
   function updateBattleStatus() {
-    const playerText = document.getElementById("playerStatusText");
-    const enemyText = document.getElementById("enemyStatusText");
-    playerText.textContent =
+    document.getElementById("playerStatusText").textContent =
       `名前：${player.name}\nHP：${player.hp} / ${player.maxHp}\n攻撃力：${player.atk}`;
-    enemyText.textContent =
+
+    document.getElementById("enemyStatusText").textContent =
       `名前：${currentEnemy.name}\nHP：${currentEnemy.hp} / ${currentEnemy.maxHp}\n攻撃力：${currentEnemy.atk}`;
   }
 
@@ -676,11 +509,12 @@
   function playerAttack() {
     const damage = Math.max(1, player.atk + Math.floor(Math.random() * 3) - 1);
     currentEnemy.hp -= damage;
-    if (currentEnemy.hp < 0) {
-      currentEnemy.hp = 0;
-    }
+    if (currentEnemy.hp < 0) currentEnemy.hp = 0;
+
+    se.attack.play();
     appendBattleLog(`勇者 ${player.name} のこうげき！ ${currentEnemy.name}に ${damage} のダメージ！`);
     updateBattleStatus();
+
     if (currentEnemy.hp <= 0) {
       winBattle();
     } else {
@@ -689,16 +523,14 @@
   }
 
   function enemyTurn() {
-    if (currentEnemy.hp <= 0) {
-      return;
-    }
     const damage = Math.max(1, currentEnemy.atk + Math.floor(Math.random() * 3) - 1);
     player.hp -= damage;
-    if (player.hp < 0) {
-      player.hp = 0;
-    }
+    if (player.hp < 0) player.hp = 0;
+
+    se.enemyAttack.play();
     appendBattleLog(`${currentEnemy.name}のこうげき！ ${player.name}は ${damage} のダメージを受けた！`);
     updateBattleStatus();
+
     if (player.hp <= 0) {
       loseBattle();
     }
@@ -707,27 +539,32 @@
   function winBattle() {
     appendBattleLog(`${currentEnemy.name}をたおした！`);
     isInBattle = false;
-    const expGain = currentEnemy.exp;
-    const goldGain = currentEnemy.gold;
-    player.exp += expGain;
-    player.gold += goldGain;
-    appendBattleLog(`経験値 ${expGain} を手に入れた！`);
-    appendBattleLog(`${goldGain}G を手に入れた！`);
+
+    player.exp += currentEnemy.exp;
+    player.gold += currentEnemy.gold;
+
+    appendBattleLog(`経験値 ${currentEnemy.exp} を手に入れた！`);
+    appendBattleLog(`${currentEnemy.gold}G を手に入れた！`);
+
+    if (isBossBattle) se.bossBattleEnd.play();
+    else se.enemyBattleEnd.play();
+
     checkLevelUp();
-    if (isBossBattle) {
-      setTimeout(() => {
+
+    setTimeout(() => {
+      if (isBossBattle) {
         showEnding();
-      }, 800);
-    } else {
-      setTimeout(() => {
+      } else {
         startField();
-      }, 800);
-    }
+      }
+    }, 800);
   }
 
   function loseBattle() {
     appendBattleLog("力尽きてしまった……");
     isInBattle = false;
+    se.playerDead.play();
+
     setTimeout(() => {
       alert("ゲームオーバー……村に戻ります。");
       player.hp = player.maxHp;
@@ -738,7 +575,7 @@
   function checkLevelUp() {
     while (player.exp >= player.nextExp) {
       player.exp -= player.nextExp;
-      player.level += 1;
+      player.level++;
       player.baseHp += 2;
       player.baseAtk += 1;
       player.nextExp += 10;
@@ -748,7 +585,37 @@
   }
 
   function showEnding() {
+    playBgm("ending");
+    setBackground("castle_bg.png");
     showScreen("screen-ending");
+  }
+  function saveGame() {
+    try {
+      localStorage.setItem("ghostQuestSave", JSON.stringify(player));
+      alert("セーブしました。");
+    } catch {
+      alert("セーブに失敗しました。");
+    }
+  }
+
+  function loadGame() {
+    try {
+      const data = localStorage.getItem("ghostQuestSave");
+      if (!data) return alert("セーブデータがありません。");
+      Object.assign(player, JSON.parse(data));
+      updateStatusValues();
+      alert("ロードしました。");
+      startVillage();
+    } catch {
+      alert("ロードに失敗しました。");
+    }
+  }
+
+  function resetGame() {
+    localStorage.removeItem("ghostQuestName");
+    localStorage.removeItem("ghostQuestSave");
+    alert("データを初期化しました。ページを再読み込みします。");
+    location.reload();
   }
 
   function initNameScreen() {
@@ -759,6 +626,7 @@
       startVillage();
       return;
     }
+    setBackground("village_bg.png");
     showScreen("screen-name");
   }
 
@@ -766,114 +634,178 @@
     const input = document.getElementById("playerNameInput");
     const name = input.value.trim();
     setPlayerName(name);
-    try {
-      localStorage.setItem("ghostQuestName", player.name);
-    } catch (e) {
-      console.error(e);
-    }
+    localStorage.setItem("ghostQuestName", player.name);
     giveInitialEquip();
     showPrologue();
   }
 
   function setupEventHandlers() {
-    document.getElementById("startButton").addEventListener("click", handleStartButton);
-    document.getElementById("prologueNextButton").addEventListener("click", showElder);
-    document.getElementById("elderToVillageButton").addEventListener("click", startVillage);
+    document.getElementById("startButton").onclick = () => {
+      se.click.play();
+      handleStartButton();
+    };
 
-    document.getElementById("healButton").addEventListener("click", () => {
+    document.getElementById("resetButton").onclick = () => {
+      se.click.play();
+      popupAction = "resetGame";
+      popupPayload = null;
+      showPopup("本当に初期化しますか？（データはすべて消えます）");
+    };
+
+    document.getElementById("prologueNextButton").onclick = () => {
+      se.click.play();
+      showElder();
+    };
+
+    document.getElementById("elderToVillageButton").onclick = () => {
+      se.click.play();
+      startVillage();
+    };
+
+    document.getElementById("healButton").onclick = () => {
+      se.click.play();
       healPlayer();
-    });
-    document.getElementById("statusButton").addEventListener("click", showStatusScreen);
-    document.getElementById("itemsButton").addEventListener("click", showItemsScreen);
-    document.getElementById("itemShopButton").addEventListener("click", () => enterShop("item"));
-    document.getElementById("weaponShopButton").addEventListener("click", () => enterShop("weapon"));
-    document.getElementById("saveButton").addEventListener("click", saveGame);
-    document.getElementById("loadButton").addEventListener("click", loadGame);
-    document.getElementById("toFieldButton").addEventListener("click", startField);
+    };
 
-    document.getElementById("fieldStatusButton").addEventListener("click", showStatusScreen);
-    document.getElementById("fieldItemsButton").addEventListener("click", showItemsScreen);
-    document.getElementById("fieldBackButton").addEventListener("click", startVillage);
-    document.getElementById("fieldEncounterButton").addEventListener("click", () => startBattle(false));
-    document.getElementById("fieldBossButton").addEventListener("click", () => startBattle(true));
+    document.getElementById("statusButton").onclick = () => {
+      se.click.play();
+      showStatusScreen();
+    };
 
-    document.getElementById("statusBackButton").addEventListener("click", () => {
-      if (currentScreenId === "screen-status") {
-        if (isInBattle) {
-          showScreen("screen-battle");
-        } else if (currentShopType) {
-          showScreen("screen-shopMenu");
-        } else {
-          startVillage();
-        }
-      }
-    });
+    document.getElementById("itemsButton").onclick = () => {
+      se.click.play();
+      showItemsScreen();
+    };
 
-    document.getElementById("itemsBackButton").addEventListener("click", () => {
-      if (isInBattle) {
-        showScreen("screen-battle");
-      } else if (currentScreenId === "screen-items") {
-        if (currentShopType) {
-          showScreen("screen-shopMenu");
-        } else if (currentScreenId === "screen-items") {
-          startVillage();
-        }
-      }
-    });
+    document.getElementById("itemShopButton").onclick = () => {
+      se.click.play();
+      enterShop("item");
+    };
 
-    document.getElementById("shopBuyButton").addEventListener("click", showShopBuy);
-    document.getElementById("shopSellButton").addEventListener("click", showShopSell);
-    document.getElementById("shopExitButton").addEventListener("click", () => {
+    document.getElementById("weaponShopButton").onclick = () => {
+      se.click.play();
+      enterShop("weapon");
+    };
+
+    document.getElementById("saveButton").onclick = () => {
+      se.click.play();
+      saveGame();
+    };
+
+    document.getElementById("loadButton").onclick = () => {
+      se.click.play();
+      loadGame();
+    };
+
+    document.getElementById("toFieldButton").onclick = () => {
+      se.click.play();
+      startField();
+    };
+
+    document.getElementById("fieldStatusButton").onclick = () => {
+      se.click.play();
+      showStatusScreen();
+    };
+
+    document.getElementById("fieldItemsButton").onclick = () => {
+      se.click.play();
+      showItemsScreen();
+    };
+
+    document.getElementById("fieldBackButton").onclick = () => {
+      se.click.play();
+      startVillage();
+    };
+
+    document.getElementById("fieldEncounterButton").onclick = () => {
+      se.click.play();
+      startBattle(false);
+    };
+
+    document.getElementById("fieldBossButton").onclick = () => {
+      se.click.play();
+      startBattle(true);
+    };
+
+    document.getElementById("statusBackButton").onclick = () => {
+      se.click.play();
+      if (isInBattle) showScreen("screen-battle");
+      else if (currentShopType) showScreen("screen-shopMenu");
+      else startVillage();
+    };
+
+    document.getElementById("itemsBackButton").onclick = () => {
+      se.click.play();
+      if (isInBattle) showScreen("screen-battle");
+      else if (currentShopType) showScreen("screen-shopMenu");
+      else startVillage();
+    };
+
+    document.getElementById("shopBuyButton").onclick = () => {
+      se.click.play();
+      showShopBuy();
+    };
+
+    document.getElementById("shopSellButton").onclick = () => {
+      se.click.play();
+      showShopSell();
+    };
+
+    document.getElementById("shopExitButton").onclick = () => {
+      se.click.play();
       currentShopType = null;
       startVillage();
-    });
+    };
 
-    document.getElementById("shopBuyBackButton").addEventListener("click", () => {
+    document.getElementById("shopBuyBackButton").onclick = () => {
+      se.click.play();
       showScreen("screen-shopMenu");
-    });
-    document.getElementById("shopSellBackButton").addEventListener("click", () => {
-      showScreen("screen-shopMenu");
-    });
+    };
 
-    document.getElementById("attackButton").addEventListener("click", () => {
-      if (isInBattle) {
-        playerAttack();
-      }
-    });
-    document.getElementById("battleItemButton").addEventListener("click", () => {
-      if (isInBattle) {
-        showItemsScreen();
-      }
-    });
-    document.getElementById("battleRunButton").addEventListener("click", () => {
+    document.getElementById("shopSellBackButton").onclick = () => {
+      se.click.play();
+      showScreen("screen-shopMenu");
+    };
+
+    document.getElementById("attackButton").onclick = () => {
+      se.click.play();
+      if (isInBattle) playerAttack();
+    };
+
+    document.getElementById("battleItemButton").onclick = () => {
+      se.click.play();
+      if (isInBattle) showItemsScreen();
+    };
+
+    document.getElementById("battleRunButton").onclick = () => {
+      se.click.play();
       if (isInBattle) {
         appendBattleLog("にげだした！");
         isInBattle = false;
         startField();
       }
-    });
+    };
 
-    document.getElementById("popupYesButton").addEventListener("click", () => {
-      if (popupAction === "useItem") {
-        useItem(popupPayload);
-      } else if (popupAction === "equipItem") {
-        equipItem(popupPayload);
-      } else if (popupAction === "sellItem") {
-        confirmSellItem(popupPayload);
-      } else if (popupAction === "sellEquip") {
-        confirmSellEquip(popupPayload);
-      }
+    document.getElementById("popupYesButton").onclick = () => {
+      se.click.play();
+      if (popupAction === "useItem") useItem(popupPayload);
+      else if (popupAction === "equipItem") equipItem(popupPayload);
+      else if (popupAction === "sellItem") confirmSellItem(popupPayload);
+      else if (popupAction === "sellEquip") confirmSellEquip(popupPayload);
+      else if (popupAction === "resetGame") resetGame();
       hidePopup();
-    });
+    };
 
-    document.getElementById("popupNoButton").addEventListener("click", () => {
+    document.getElementById("popupNoButton").onclick = () => {
+      se.click.play();
       hidePopup();
-    });
+    };
 
-    document.getElementById("endingToTitleButton").addEventListener("click", () => {
+    document.getElementById("endingToTitleButton").onclick = () => {
+      se.click.play();
       player.hp = player.maxHp;
       startVillage();
-    });
+    };
   }
 
   function initScrollPrevention() {

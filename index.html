@@ -2,12 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ゴーストクエストRPG</title>
+  <title>Ghost Quest RPG</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- ========================= -->
+  <!--  背景画像（画面ごとに切替） -->
+  <!-- ========================= -->
+  <img id="bgImage" src="village_bg.png" class="bg-image">
+
+  <!-- ========================= -->
+  <!--  すべての画面を包むコンテナ -->
+  <!-- ========================= -->
   <div id="gameContainer">
-    <!-- 名前入力 -->
+
+    <!-- ========================= -->
+    <!--  名前入力画面 -->
+    <!-- ========================= -->
     <div id="screen-name" class="screen">
       <h1>ゴーストクエスト</h1>
       <p>あなたの名前を入力してください</p>
@@ -17,7 +29,9 @@
       </div>
     </div>
 
-    <!-- プロローグ -->
+    <!-- ========================= -->
+    <!--  プロローグ -->
+    <!-- ========================= -->
     <div id="screen-prologue" class="screen hidden">
       <h2>プロローグ</h2>
       <p class="story-text">
@@ -30,7 +44,9 @@
       </div>
     </div>
 
-    <!-- 長老の家 -->
+    <!-- ========================= -->
+    <!--  長老の家 -->
+    <!-- ========================= -->
     <div id="screen-elder" class="screen hidden">
       <h2>長老の家</h2>
       <p id="elderText" class="story-text"></p>
@@ -39,7 +55,9 @@
       </div>
     </div>
 
-    <!-- 村 -->
+    <!-- ========================= -->
+    <!--  村 -->
+    <!-- ========================= -->
     <div id="screen-village" class="screen hidden">
       <h2>ゴースト村</h2>
       <p>ここはあなたの拠点です。</p>
@@ -51,11 +69,14 @@
         <button id="weaponShopButton">武器屋</button>
         <button id="saveButton">セーブ</button>
         <button id="loadButton">ロード</button>
+        <button id="resetButton">初期化（最初から）</button>
         <button id="toFieldButton">フィールドへ出発</button>
       </div>
     </div>
 
-    <!-- フィールド -->
+    <!-- ========================= -->
+    <!--  フィールド -->
+    <!-- ========================= -->
     <div id="screen-field" class="screen hidden">
       <h2>フィールド</h2>
       <p id="fieldMessage">フィールドを歩いています……</p>
@@ -68,9 +89,17 @@
       </div>
     </div>
 
-    <!-- 戦闘 -->
+    <!-- ========================= -->
+    <!--  戦闘 -->
+    <!-- ========================= -->
     <div id="screen-battle" class="screen hidden">
       <h2 id="battleTitle">戦闘</h2>
+
+      <div class="battle-graphics">
+        <img id="battleHeroImg" src="hero.png" class="battle-hero">
+        <img id="battleEnemyImg" src="ghost.png" class="battle-enemy">
+      </div>
+
       <div class="battle-status">
         <div>
           <h3>勇者</h3>
@@ -81,7 +110,9 @@
           <p id="enemyStatusText"></p>
         </div>
       </div>
+
       <div class="battle-log" id="battleLog"></div>
+
       <div class="button-row">
         <button id="attackButton">こうげき</button>
         <button id="battleItemButton">アイテム</button>
@@ -89,7 +120,9 @@
       </div>
     </div>
 
-    <!-- エンディング -->
+    <!-- ========================= -->
+    <!--  エンディング -->
+    <!-- ========================= -->
     <div id="screen-ending" class="screen hidden ending-screen">
       <div class="ending-text">
         <p>
@@ -103,7 +136,9 @@
       </div>
     </div>
 
-    <!-- 店メニュー -->
+    <!-- ========================= -->
+    <!--  店メニュー -->
+    <!-- ========================= -->
     <div id="screen-shopMenu" class="screen hidden">
       <h2 id="shopTitle">店</h2>
       <div class="button-column">
@@ -113,7 +148,9 @@
       </div>
     </div>
 
-    <!-- 買い物画面 -->
+    <!-- ========================= -->
+    <!--  買い物画面 -->
+    <!-- ========================= -->
     <div id="screen-shopBuy" class="screen hidden">
       <h2 id="shopBuyTitle">買い物</h2>
       <p id="shopGoldText"></p>
@@ -123,7 +160,9 @@
       </div>
     </div>
 
-    <!-- 売却画面 -->
+    <!-- ========================= -->
+    <!--  売却画面 -->
+    <!-- ========================= -->
     <div id="screen-shopSell" class="screen hidden">
       <h2>売却</h2>
       <p id="shopSellGoldText"></p>
@@ -133,7 +172,9 @@
       </div>
     </div>
 
-    <!-- ステータス画面 -->
+    <!-- ========================= -->
+    <!--  ステータス画面 -->
+    <!-- ========================= -->
     <div id="screen-status" class="screen hidden">
       <h2>ステータス</h2>
       <p id="statusText"></p>
@@ -142,7 +183,9 @@
       </div>
     </div>
 
-    <!-- アイテムストレージ -->
+    <!-- ========================= -->
+    <!--  アイテムストレージ -->
+    <!-- ========================= -->
     <div id="screen-items" class="screen hidden">
       <h2>アイテムストレージ</h2>
       <p id="itemsGoldText"></p>
@@ -152,7 +195,9 @@
       </div>
     </div>
 
-    <!-- ポップアップ -->
+    <!-- ========================= -->
+    <!--  ポップアップ -->
+    <!-- ========================= -->
     <div id="popup" class="popup hidden">
       <div class="popup-inner">
         <p id="popupMessage"></p>
@@ -162,7 +207,34 @@
         </div>
       </div>
     </div>
+
   </div>
+
+  <!-- ========================= -->
+  <!--  BGM / SE 読み込み -->
+  <!-- ========================= -->
+  <audio id="bgmVillage" src="bgm_village.wav" loop></audio>
+  <audio id="bgmField" src="bgm_field.wav" loop></audio>
+  <audio id="bgmEnemyBattle" src="bgm_EnemyBattle.wav" loop></audio>
+  <audio id="bgmBossBattle" src="bgm_BossBattle.wav" loop></audio>
+  <audio id="bgmPrologue" src="bgm_prologue.wav" loop></audio>
+  <audio id="bgmEnding" src="bgm_ending.wav" loop></audio>
+
+  <audio id="seAttack" src="se_attack.wav"></audio>
+  <audio id="seEnemyAttack" src="se_enemy_attack.wav"></audio>
+  <audio id="seDamage" src="se_damage.wav"></audio>
+  <audio id="sePlayerDead" src="se_player_dead.wav"></audio>
+  <audio id="seDead" src="se_dead.wav"></audio>
+  <audio id="seEncounter" src="se_encounter.wav"></audio>
+  <audio id="seBossEncounter" src="se_boss_encounter.wav"></audio>
+  <audio id="seEnemyBattleEnd" src="se_EnemyBattleEnd.wav"></audio>
+  <audio id="seBossBattleEnd" src="se_BossBattle.wav"></audio>
+  <audio id="seClick" src="se_click.wav"></audio>
+  <audio id="seBuy" src="se_buy.wav"></audio>
+  <audio id="seSell" src="se_sell.wav"></audio>
+  <audio id="seItem" src="se_item.wav"></audio>
+  <audio id="seEquip" src="se_equip.wav"></audio>
+  <audio id="seHeal" src="se_heal.wav"></audio>
 
   <script src="game.js"></script>
 </body>
