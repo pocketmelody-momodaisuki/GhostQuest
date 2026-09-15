@@ -706,10 +706,10 @@
   }
 
   function setupEventHandlers() {
-    document.getElementById("startButton").onclick = () => {
+    document.getElementById("startButton").addEventListener("pointerup", () => {
       se.click.play();
       handleStartButton();
-    };
+    });
 
     document.getElementById("resetButton").onclick = () => {
       se.click.play();
