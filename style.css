@@ -117,13 +117,18 @@ input[type="text"] {
   pointer-events: none;
 }
 
+.battle-graphics img {
+  max-height: 30vh;
+  object-fit: contain;
+}
+
 .battle-hero {
-  width: 40%;
+  width: 12%;
   max-width: 200px;
 }
 
 .battle-enemy {
-  width: 40%;
+  width: 18%;
   max-width: 200px;
 }
 
