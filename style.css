@@ -62,6 +62,8 @@ html, body {
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.7);
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .hidden {
