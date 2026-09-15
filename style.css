@@ -20,9 +20,13 @@ html, body {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
+  pointer-events: none;
   z-index: -1;
 }
-
+#gameContainer {
+  position: relative;
+  z-index: 1;  /* ← ゲーム画面を前面に */
+}
 /* ゲーム全体を中央に配置 */
 #gameContainer {
   width: 100vw;
