@@ -116,11 +116,10 @@
     document.getElementById("bgImage").src = src;
   }
   function showScreen(id) {
-    document.querySelectorAll(".screen").forEach(s => {
-      s.classList.toggle("hidden", s.id !== id);
-    });
-    currentScreenId = id;
+    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
   }
+
 
   function setPlayerName(name) {
     player.name = name || "ななし";
@@ -703,6 +702,8 @@
     localStorage.setItem("ghostQuestName", player.name);
     giveInitialEquip();
     showPrologue();
+    document.getElementById("screen-name").classList.add("hidden");
+    showScreen("screen-prologue");
   }
 
   function setupEventHandlers() {
