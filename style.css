@@ -114,9 +114,20 @@ button:hover {
 input[type="text"] {
   width: 80%;
   padding: 8px;
-  font-size: 16px;
+  font-size: 17px;
   margin-top: 8px;
   box-sizing: border-box;
+}
+
+#screen-name {
+  width: 80vw;
+  height: 80vw;        /* ← 正方形にする */
+  max-width: 400px;    /* ← PCでは大きくなりすぎないように */
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 /* =============================== */
