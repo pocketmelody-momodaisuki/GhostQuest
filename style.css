@@ -114,6 +114,7 @@ input[type="text"] {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;
+  pointer-events: none;
 }
 
 .battle-hero {
