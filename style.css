@@ -58,7 +58,14 @@ html, body {
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.7);
   overflow: hidden;
+
+  /* 追加：中央配置 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
+
 
 .hidden {
   display: none;
@@ -321,6 +328,8 @@ input[type="text"] {
 
 @media (min-width: 800px) {
   #gameContainer {
-    justify-content: center;
+  width: 100vw;
+  height: 100vh;
   }
+
 }
