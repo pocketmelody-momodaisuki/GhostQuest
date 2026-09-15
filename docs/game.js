@@ -709,7 +709,8 @@
   function setupEventHandlers() {
     document.getElementById("startButton").addEventListener("pointerup", () => {
       se.click.play();
-      handleStartButton();
+      handleStartButton();   // 画面切り替えが先
+      applyDisplaySize();    // 正方形化は後
     });
 
     document.getElementById("resetButton").onclick = () => {
